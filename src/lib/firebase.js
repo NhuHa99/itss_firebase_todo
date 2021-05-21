@@ -38,32 +38,38 @@ export const deleteFbItem = async (item) => {
     console.log(err);
   });
 };  
-}; 
+ 
 export const checkInfo = async (currentUser) => {
   const uid = currentUser.uid;
   const userDoc = await firebase.firestore().collection("users").doc(uid).get();
+  console.log("doc",userDoc);
   if (!userDoc.exists) {
     await firebase.firestore().collection("users").doc(uid).set({ name: currentUser.displayName });
     return {
-      name: currentUser.displayName,
-      id: uid,
-    };
-  } else {
-    return {
-      id: uid,
-      ...userDoc.data(),
-    };
-  }
-} 
-
-// Configure FirebaseUI.
 export const uiConfig = {
-  // Popup signin flow rather than redirect flow.
-  signInFlow: 'popup',
-  // Redirect to /signedIn after sign in is successful. Alternatively you can provide a callbacks.signInSuccess function.
-  signInSuccessUrl: '/',
-  // We will display Google and Facebook as auth providers.
   signInOptions: [
     firebase.auth.GoogleAuthProvider.PROVIDER_ID,
   ],
 }; 
+export const updateUser = async (user, image) => {
+  try {
+    const userDoc = await firebase.firestore().collection("users").doc(user.id).get();
+    if (userDoc.exists) {
+      await firebase.firestore().collection("users").doc(user.id).update({ ...userDoc.data(), image: image });
+    }
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+export const uploadImage = async (image) => {
+  const ref = firebase.storage().ref().child(`/images/${image.name}`);
+  let url = "";
+  try {
+    await ref.put(image);
+    url = await ref.getDownloadURL();
+  } catch (err) {
+    console.log(err);
+  }
+  return url;
+};
